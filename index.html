@@ -88,6 +88,47 @@
 
   #chartPlaceholder{ padding:18px; border:1px dashed #ccc; border-radius:6px; min-height:80px; background:#fafafa; font-size:14px; line-height:1.9; }
 
+  /* ---------- MANAGE OPTIONS MODAL ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:80;
+    align-items:center; justify-content:center; padding:16px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{ background:#fff; border-radius:10px; width:100%; max-width:380px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; }
+  .modal-header{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .modal-header h3{ font-size:15px; color:var(--navy); }
+  .modal-header button{ background:none; border:none; font-size:20px; color:#777; line-height:1; }
+  .modal-add-row{ display:flex; gap:8px; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .modal-add-row input{ flex:1; padding:9px 10px; border:1px solid #ccc; border-radius:6px; }
+  .modal-add-row button{ padding:9px 14px; background:var(--blue); color:#fff; border:none; border-radius:6px; font-weight:600; white-space:nowrap; }
+  .modal-add-row button:hover{ background:var(--blue-dark); }
+  .manage-list{ list-style:none; overflow-y:auto; padding:6px 0; }
+  .manage-list li{ display:flex; align-items:center; justify-content:space-between; padding:9px 16px; font-size:14px; border-bottom:1px solid #f1f1f1; }
+  .manage-list li button{ background:none; border:none; color:#d9534f; font-size:13px; padding:4px 8px; }
+  .manage-list li button:hover{ text-decoration:underline; }
+  .manage-empty{ padding:16px; text-align:center; color:#999; font-size:13px; }
+
+  /* ---------- TREND CONTROLS ---------- */
+  .trend-controls{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:6px; }
+  .disease-checklist{
+    border:1px solid var(--border); border-radius:6px; max-height:160px; overflow-y:auto; padding:8px 4px; background:#fafcff;
+  }
+  .disease-checklist label{
+    display:flex; align-items:center; gap:8px; padding:6px 10px; font-size:13.5px; font-weight:400; color:#333; cursor:pointer;
+  }
+  .disease-checklist label:hover{ background:#eef6ff; }
+  .disease-checklist input[type="checkbox"]{ width:16px; height:16px; }
+  .trend-select-all{ font-size:12px; color:var(--blue); cursor:pointer; margin-left:2px; }
+  .trend-select-all:hover{ text-decoration:underline; }
+  .trend-dates .form-group{ margin-bottom:10px; }
+  .trend-dates .form-group:last-child{ margin-bottom:0; }
+  .trend-dates label{ display:block; font-weight:600; margin-bottom:5px; color:var(--navy); font-size:13px; }
+  .trend-dates input, .trend-dates select{ width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; }
+
+  @media (max-width:640px){
+    .trend-controls{ grid-template-columns:1fr; }
+  }
+
   /* ---------- MOBILE FAB + BOTTOM SHEET FOR THE ENTRY FORM ---------- */
   #fab{
     display:none; position:fixed; right:18px; bottom:18px; width:58px; height:58px; border-radius:50%;
@@ -204,7 +245,7 @@
           <div class="form-group">
             <label for="disease">Disease</label>
             <select id="disease"></select>
-            <div class="add-option" onclick="addNewOption('Disease')">+ Add new disease</div>
+            <div class="add-option" onclick="openManageModal('Disease')">Manage diseases</div>
           </div>
 
           <div class="form-group">
@@ -229,7 +270,7 @@
           <div class="form-group">
             <label for="location">Location / Station</label>
             <select id="location"></select>
-            <div class="add-option" onclick="addNewOption('Location')">+ Add new station</div>
+            <div class="add-option" onclick="openManageModal('Location')">Manage stations</div>
           </div>
 
           <button class="btn-primary" id="addEntryBtn" onclick="addEntry()">Add Entry</button>
@@ -281,8 +322,38 @@
           <hr style="margin:22px 0; border:1px solid #eee;">
 
           <div>
-            <h2 style="color:#d9534f; font-size:17px; margin-bottom:10px;">Trend of All Cases</h2>
+            <h2 style="color:#d9534f; font-size:17px; margin-bottom:14px;">Disease Trend</h2>
+
+            <div class="trend-controls">
+              <div>
+                <label style="font-weight:600; font-size:13px; color:var(--navy);">Diseases</label>
+                <span class="trend-select-all" onclick="toggleAllDiseases()">(select/clear all)</span>
+                <div class="disease-checklist" id="diseaseChecklist"></div>
+              </div>
+              <div class="trend-dates">
+                <div class="form-group">
+                  <label for="trendFrom">From</label>
+                  <input type="date" id="trendFrom" onchange="updateTrendChart()">
+                </div>
+                <div class="form-group">
+                  <label for="trendTo">To</label>
+                  <input type="date" id="trendTo" onchange="updateTrendChart()">
+                </div>
+                <div class="form-group">
+                  <label for="trendGroup">Group by</label>
+                  <select id="trendGroup" onchange="updateTrendChart()">
+                    <option value="day">Day</option>
+                    <option value="week" selected>Week</option>
+                    <option value="month">Month</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div id="chartPlaceholder">Loading data…</div>
+            <div style="position:relative; height:320px; margin-top:6px; display:none;" id="trendChartWrap">
+              <canvas id="trendChart"></canvas>
+            </div>
           </div>
         </main>
 
@@ -290,8 +361,23 @@
     </main>
 
     <button id="fab" onclick="openSheet()">+</button>
+
+    <div class="modal-overlay" id="manageModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="manageModalTitle">Manage Diseases</h3>
+          <button onclick="closeManageModal()">✕</button>
+        </div>
+        <div class="modal-add-row">
+          <input type="text" id="manageNewValue" placeholder="Add new...">
+          <button onclick="manageAddItem()">Add</button>
+        </div>
+        <ul class="manage-list" id="manageList"></ul>
+      </div>
+    </div>
   </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
 /* =========================================================================
    CONFIG — paste the Web App URL you get after deploying Code.gs here
@@ -306,6 +392,11 @@ let diseases = [];
 let locations = [];
 let sortCol = 'Date';
 let sortDir = 'desc';
+let manageType = null;       // 'Disease' | 'Location' — which list the modal is managing
+let trendChart = null;       // Chart.js instance
+let trendRangeInitialised = false;
+
+const DISEASE_COLORS = ['#007bff','#d9534f','#28a745','#f0ad4e','#6f42c1','#17a2b8','#e83e8c','#795548','#20c997','#fd7e14'];
 
 /* =========================================================================
    API HELPERS
@@ -404,6 +495,10 @@ function closeSheetFn() {
 document.getElementById('closeSheet').addEventListener('click', closeSheetFn);
 document.getElementById('sheetOverlay').addEventListener('click', closeSheetFn);
 
+document.getElementById('manageModal').addEventListener('click', (e) => {
+  if (e.target.id === 'manageModal') closeManageModal();
+});
+
 /* =========================================================================
    DATA LOADING
    ========================================================================= */
@@ -416,6 +511,7 @@ async function loadAll() {
     locations = (optsRes && optsRes.locations) || [];
     populateSelects();
     renderTable();
+    updateTrendChart();
     document.getElementById('syncNote').textContent = 'Last synced: ' + new Date().toLocaleTimeString();
   } catch (err) {
     showStatus('Could not sync with Google Sheet. Showing last loaded data.', 'error', 4000);
@@ -425,21 +521,96 @@ async function loadAll() {
 function populateSelects() {
   document.getElementById('disease').innerHTML = diseases.map(d => `<option>${escapeHtml(d)}</option>`).join('');
   document.getElementById('location').innerHTML = locations.map(l => `<option>${escapeHtml(l)}</option>`).join('');
+  populateDiseaseChecklist();
 }
 
-async function addNewOption(type) {
-  const val = (prompt(`Enter new ${type.toLowerCase()}:`) || '').trim();
+/* ---------- Disease checklist (used by the trend chart) ---------- */
+function populateDiseaseChecklist() {
+  const host = document.getElementById('diseaseChecklist');
+  const previouslyChecked = new Set(
+    [...host.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value)
+  );
+  const isFirstRun = host.dataset.initialised !== 'true';
+
+  host.innerHTML = diseases.map(d => `
+    <label>
+      <input type="checkbox" value="${escapeHtml(d)}" onchange="updateTrendChart()"
+        ${isFirstRun || previouslyChecked.has(d) ? 'checked' : ''}>
+      ${escapeHtml(d)}
+    </label>
+  `).join('');
+  host.dataset.initialised = 'true';
+}
+
+function toggleAllDiseases() {
+  const boxes = document.querySelectorAll('#diseaseChecklist input[type="checkbox"]');
+  const anyUnchecked = [...boxes].some(cb => !cb.checked);
+  boxes.forEach(cb => cb.checked = anyUnchecked);
+  updateTrendChart();
+}
+
+/* ---------- Manage (add/delete) diseases & locations ---------- */
+function openManageModal(type) {
+  manageType = type;
+  document.getElementById('manageModalTitle').textContent = type === 'Disease' ? 'Manage Diseases' : 'Manage Stations';
+  document.getElementById('manageNewValue').value = '';
+  renderManageList();
+  document.getElementById('manageModal').classList.add('open');
+}
+function closeManageModal() {
+  document.getElementById('manageModal').classList.remove('open');
+  manageType = null;
+}
+function renderManageList() {
+  const list = manageType === 'Disease' ? diseases : locations;
+  const host = document.getElementById('manageList');
+  if (list.length === 0) {
+    host.innerHTML = `<li class="manage-empty">Nothing here yet</li>`;
+    return;
+  }
+  host.innerHTML = list.map(v => `
+    <li>
+      <span>${escapeHtml(v)}</span>
+      <button onclick="manageDeleteItem('${escapeJs(v)}')">Delete</button>
+    </li>
+  `).join('');
+}
+
+async function manageAddItem() {
+  const input = document.getElementById('manageNewValue');
+  const val = input.value.trim();
   if (!val) return;
-  const list = type === 'Disease' ? diseases : locations;
-  if (list.includes(val)) return;
+  const list = manageType === 'Disease' ? diseases : locations;
+  if (list.includes(val)) { showStatus('That value already exists', 'error'); return; }
+
   list.push(val);
+  renderManageList();
   populateSelects();
-  document.getElementById(type === 'Disease' ? 'disease' : 'location').value = val;
+  input.value = '';
+
   try {
-    await apiPost({ action: 'addOption', optionType: type, value: val });
-    showStatus(`New ${type.toLowerCase()} "${val}" saved to the sheet`, 'success');
+    const res = await apiPost({ action: 'addOption', optionType: manageType, value: val });
+    if (!res.success) throw new Error(res.message);
+    showStatus(`"${val}" added`, 'success');
   } catch (err) {
-    showStatus(`Saved locally, but could not sync the new ${type.toLowerCase()} to the sheet`, 'error');
+    showStatus(`Saved locally, but could not sync "${val}" to the sheet`, 'error');
+  }
+}
+
+async function manageDeleteItem(val) {
+  if (!confirm(`Remove "${val}" from the list? Past entries already using it are not affected.`)) return;
+  const list = manageType === 'Disease' ? diseases : locations;
+  const idx = list.indexOf(val);
+  if (idx > -1) list.splice(idx, 1);
+  renderManageList();
+  populateSelects();
+
+  try {
+    const res = await apiPost({ action: 'deleteOption', optionType: manageType, value: val });
+    if (!res.success) throw new Error(res.message);
+    showStatus(`"${val}" removed`, 'success');
+  } catch (err) {
+    showStatus(`Removed locally, but could not sync the deletion to the sheet`, 'error');
   }
 }
 
@@ -528,7 +699,6 @@ function renderTable() {
   }
 
   document.getElementById('tableInfo').textContent = `Showing 1 to ${displayData.length} of ${filtered.length} entries`;
-  updateTrend(filtered);
 }
 
 function sortTable(col) {
@@ -537,19 +707,123 @@ function sortTable(col) {
   renderTable();
 }
 
-function updateTrend(filtered) {
-  const el = document.getElementById('chartPlaceholder');
-  if (!filtered || filtered.length === 0) {
-    el.innerHTML = 'No data yet.<br>Use "Add New Case" to add the first entry.';
+/* =========================================================================
+   TREND CHART (disease + multi-disease trend, with date range & grouping)
+   ========================================================================= */
+function initTrendDateRange() {
+  if (trendRangeInitialised || data.length === 0) return;
+  const validDates = data.map(r => r.Date).filter(Boolean).sort();
+  if (validDates.length === 0) return;
+  document.getElementById('trendFrom').value = validDates[0];
+  document.getElementById('trendTo').value = validDates[validDates.length - 1];
+  trendRangeInitialised = true;
+}
+
+function bucketKey(dateStr, groupBy) {
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return null;
+  if (groupBy === 'day') return dateStr;
+  if (groupBy === 'month') return dateStr.slice(0, 7); // YYYY-MM
+  // week: key = ISO Monday of that week
+  const day = (d.getDay() + 6) % 7; // Mon=0..Sun=6
+  d.setDate(d.getDate() - day);
+  return d.toISOString().slice(0, 10);
+}
+
+function updateTrendChart() {
+  const placeholder = document.getElementById('chartPlaceholder');
+  const chartWrap = document.getElementById('trendChartWrap');
+
+  if (data.length === 0) {
+    placeholder.style.display = 'block';
+    placeholder.innerHTML = 'No data yet.<br>Use "Add New Case" to add the first entry.';
+    chartWrap.style.display = 'none';
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
     return;
   }
-  const byDisease = {};
-  filtered.forEach(r => { byDisease[r.Disease] = (byDisease[r.Disease] || 0) + 1; });
-  let html = `<strong>Total Cases: ${filtered.length}</strong><br><br>Disease Breakdown:<br>`;
-  Object.entries(byDisease)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([d, c]) => html += `${escapeHtml(d)}: ${c}<br>`);
-  el.innerHTML = html;
+
+  initTrendDateRange();
+
+  const from = document.getElementById('trendFrom').value;
+  const to = document.getElementById('trendTo').value;
+  const groupBy = document.getElementById('trendGroup').value;
+  const selectedDiseases = [...document.querySelectorAll('#diseaseChecklist input:checked')].map(cb => cb.value);
+
+  if (selectedDiseases.length === 0) {
+    placeholder.style.display = 'block';
+    placeholder.innerHTML = 'Select at least one disease above to see its trend.';
+    chartWrap.style.display = 'none';
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    return;
+  }
+
+  const inRange = data.filter(r => {
+    if (!r.Date) return false;
+    if (from && r.Date < from) return false;
+    if (to && r.Date > to) return false;
+    return selectedDiseases.includes(r.Disease);
+  });
+
+  if (inRange.length === 0) {
+    placeholder.style.display = 'block';
+    placeholder.innerHTML = 'No cases found for the selected disease(s) and date range.';
+    chartWrap.style.display = 'none';
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    return;
+  }
+
+  // Build { bucketKey: { disease: count } }, and collect sorted bucket keys
+  const buckets = {};
+  inRange.forEach(r => {
+    const key = bucketKey(r.Date, groupBy);
+    if (!key) return;
+    if (!buckets[key]) buckets[key] = {};
+    buckets[key][r.Disease] = (buckets[key][r.Disease] || 0) + 1;
+  });
+  const sortedKeys = Object.keys(buckets).sort();
+
+  const labels = sortedKeys.map(k => formatBucketLabel(k, groupBy));
+  const datasets = selectedDiseases.map((disease, i) => ({
+    label: disease,
+    data: sortedKeys.map(k => buckets[k][disease] || 0),
+    borderColor: DISEASE_COLORS[i % DISEASE_COLORS.length],
+    backgroundColor: DISEASE_COLORS[i % DISEASE_COLORS.length],
+    tension: 0.25,
+    fill: false,
+    pointRadius: 3
+  }));
+
+  placeholder.style.display = 'none';
+  chartWrap.style.display = 'block';
+
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Cases' } },
+        x: { title: { display: true, text: groupBy.charAt(0).toUpperCase() + groupBy.slice(1) } }
+      },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+function formatBucketLabel(key, groupBy) {
+  if (groupBy === 'month') {
+    const [y, m] = key.split('-');
+    return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+  }
+  if (groupBy === 'week') {
+    const d = new Date(key + 'T00:00:00');
+    return 'Wk of ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+  const d = new Date(key + 'T00:00:00');
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
 /* =========================================================================
@@ -588,6 +862,10 @@ function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function escapeJs(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 </script>
 </body>
