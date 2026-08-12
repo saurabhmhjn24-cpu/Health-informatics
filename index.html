@@ -252,6 +252,14 @@
           </div>
 
           <div class="form-group">
+            <label for="originType">Local / Imported</label>
+            <select id="originType">
+              <option>Local</option>
+              <option>Imported</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label for="dateOccurrence">Date of Occurrence</label>
             <input type="date" id="dateOccurrence">
           </div>
@@ -308,6 +316,7 @@
                 <th onclick="sortTable('PatientType')">Type</th>
                 <th onclick="sortTable('OPD_IPD')">OPD/IPD</th>
                 <th onclick="sortTable('Disease')">Disease</th>
+                <th onclick="sortTable('OriginType')">Origin</th>
                 <th onclick="sortTable('Date')">Date</th>
                 <th onclick="sortTable('Age')">Age</th>
                 <th onclick="sortTable('Gender')">Gender</th>
@@ -390,7 +399,7 @@
 /* =========================================================================
    CONFIG — paste the Web App URL you get after deploying Code.gs here
    ========================================================================= */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzAwvMjAzpdtm6X6HkcU4tNA0BFE0WINXVZ7bFkcuIfomeqqb3-ldjFUpAwtOnKlRs/exec?action=getData';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzAwvMjAzpdtm6X6HkcU4tNA0BFE0WINXVZ7bFkcuIfomeqqb3-ldjFUpAwtOnKlRs/exec';
 
 /* =========================================================================
    STATE
@@ -643,6 +652,7 @@ async function addEntry() {
     patientType: document.getElementById('patientType').value,
     opdIpd: document.getElementById('opdIpd').value,
     disease: document.getElementById('disease').value,
+    originType: document.getElementById('originType').value,
     date: document.getElementById('dateOccurrence').value,
     age: parseInt(document.getElementById('patientAge').value) || '',
     gender: document.getElementById('gender').value,
@@ -697,7 +707,7 @@ function renderTable() {
   const displayData = filtered.slice(0, perPage);
 
   if (displayData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="no-data">No data available</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="no-data">No data available</td></tr>`;
   } else {
     displayData.forEach(row => {
       const tr = document.createElement('tr');
@@ -706,6 +716,7 @@ function renderTable() {
         <td data-label="Type">${escapeHtml(row.PatientType)}</td>
         <td data-label="OPD/IPD">${escapeHtml(row.OPD_IPD)}</td>
         <td data-label="Disease">${escapeHtml(row.Disease)}</td>
+        <td data-label="Origin">${escapeHtml(row.OriginType)}</td>
         <td data-label="Date">${escapeHtml(row.Date)}</td>
         <td data-label="Age">${escapeHtml(row.Age)}</td>
         <td data-label="Gender">${escapeHtml(row.Gender)}</td>
@@ -864,9 +875,9 @@ function formatBucketLabel(key, groupBy) {
    ========================================================================= */
 function exportToCSV() {
   if (data.length === 0) return alert('No data to export');
-  let csv = 'PatientName,PatientType,OPD_IPD,Disease,Date,Age,Gender,Location\n';
+  let csv = 'PatientName,PatientType,OPD_IPD,Disease,OriginType,Date,Age,Gender,Location\n';
   data.forEach(r => {
-    csv += `"${r.PatientName}","${r.PatientType}","${r.OPD_IPD}","${r.Disease}",${r.Date},${r.Age},"${r.Gender}","${r.Location}"\n`;
+    csv += `"${r.PatientName}","${r.PatientType}","${r.OPD_IPD}","${r.Disease}","${r.OriginType}",${r.Date},${r.Age},"${r.Gender}","${r.Location}"\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
