@@ -2,915 +2,914 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Health Informatics Dashboard - SHO Shakurbasti</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Informatics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --blue:#007bff; --blue-dark:#0056b3; --navy:#2c3e50;
-    --bg:#f8f9fa; --card:#ffffff; --border:#dee2e6;
-    --success-bg:#d4edda; --success-fg:#155724;
-    --error-bg:#f8d7da; --error-fg:#721c24;
-    --radius:8px;
+    --bg:#F1F5F6;
+    --surface:#FFFFFF;
+    --ink:#0F2027;
+    --muted:#5C707A;
+    --line:#DEE7E9;
+    --teal:#0E7C7B;
+    --teal-dark:#0A5F5E;
+    --teal-pale:#E4F2F1;
+    --amber:#D98E3B;
+    --amber-pale:#FBEEDD;
+    --danger:#C0503D;
+    --danger-pale:#F8E9E5;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(15,32,39,0.04), 0 4px 16px rgba(15,32,39,0.05);
   }
-  *{ box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; margin:0; padding:0; }
-  body{ background:var(--bg); color:#333; -webkit-tap-highlight-color:transparent; }
-  button{ font-size:15px; cursor:pointer; }
-  input, select{ font-size:16px; } /* 16px prevents iOS zoom-on-focus */
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  body, input, select, button{font-family:'Inter',system-ui,sans-serif;}
+  .num, .stat-value{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  html,body{background:var(--bg);color:var(--ink);}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  button{cursor:pointer;font:inherit;}
+  a{color:inherit;}
+  ::selection{background:var(--teal-pale);}
 
-  /* ---------- LOGIN SCREEN ---------- */
-  #loginScreen{
-    position:fixed; inset:0; background:linear-gradient(160deg,#0f2942,#1c3f5f);
-    display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;
+  /* ---------- Pulse trace signature element ---------- */
+  .pulse-trace{width:100%;height:34px;display:block;}
+  .pulse-trace path{fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .pulse-trace.dim path{stroke:var(--line);}
+
+  /* ---------- Login ---------- */
+  #login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(14,124,123,0.08), transparent 60%),
+      radial-gradient(900px 500px at 110% 110%, rgba(217,142,59,0.06), transparent 60%),
+      var(--bg);
+    padding:24px;
   }
   .login-card{
-    background:var(--card); border-radius:12px; padding:32px 28px; width:100%; max-width:380px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);width:100%;max-width:400px;padding:36px 32px 32px;
   }
-  .login-card h1{ font-size:19px; color:var(--navy); margin-bottom:4px; line-height:1.3; }
-  .login-card p.sub{ font-size:13px; color:#777; margin-bottom:22px; }
-  .login-card .form-group{ margin-bottom:16px; }
-  .login-card label{ display:block; font-size:13px; font-weight:600; color:var(--navy); margin-bottom:6px; }
-  .login-card input{ width:100%; padding:11px 12px; border:1px solid #ccc; border-radius:6px; }
-  .login-card button{ width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:6px; font-weight:600; margin-top:6px; }
-  .login-card button:hover{ background:var(--blue-dark); }
-  .login-card button:disabled{ opacity:.6; cursor:default; }
-  #loginError{ display:none; background:var(--error-bg); color:var(--error-fg); padding:9px 12px; border-radius:6px; font-size:13px; margin-bottom:14px; }
-  .login-foot{ text-align:center; font-size:11px; color:#999; margin-top:18px; }
-
-  /* ---------- APP SHELL ---------- */
-  #app{ display:none; }
-  header{
-    background:var(--navy); color:#fff; padding:14px 18px; position:sticky; top:0; z-index:20;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  .login-eyebrow{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
+  .login-card h1{font-size:24px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+  .login-sub{color:var(--muted);font-size:13.5px;margin-bottom:22px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+    font-size:14.5px;background:#FBFDFD;color:var(--ink);transition:border-color .15s, background .15s;
   }
-  header .title h1{ font-size:16px; font-weight:700; line-height:1.3; }
-  header .title span{ font-size:11px; color:#b9c6d3; }
-  header .user-box{ display:flex; align-items:center; gap:10px; font-size:13px; }
-  header .user-box button{ background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); padding:7px 12px; border-radius:6px; }
-  header .user-box button:hover{ background:rgba(255,255,255,.22); }
-
-  main{ padding:16px; max-width:1400px; margin:0 auto; }
-  .container{ display:grid; grid-template-columns:300px 1fr; gap:20px; align-items:start; }
-
-  .sidebar{
-    background:#e9f0fa; border-radius:var(--radius); padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.08);
-    position:sticky; top:74px;
+  .field input:focus, .field select:focus{outline:none;border-color:var(--teal);background:#fff;}
+  .btn-primary{
+    width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:8px;
+    font-size:14.5px;font-weight:600;transition:background .15s;
   }
-  .sidebar h3{ color:var(--navy); font-size:15px; margin-bottom:16px; }
-  .form-group{ margin-bottom:14px; }
-  .form-group label{ display:block; font-weight:600; margin-bottom:6px; color:var(--navy); font-size:13px; }
-  .form-group input, .form-group select{ width:100%; padding:10px 11px; border:1px solid #ccc; border-radius:6px; background:#fff; }
-  .form-group input:focus, .form-group select:focus{ outline:none; border-color:#80bdff; box-shadow:0 0 0 .2rem rgba(0,123,255,.25); }
-  .add-option{ margin-top:6px; font-size:12px; color:var(--blue); cursor:pointer; }
-  .add-option:hover{ text-decoration:underline; }
-  .btn-primary{ width:100%; padding:11px; background:var(--blue); color:#fff; border:none; border-radius:6px; font-weight:600; margin-top:6px; }
-  .btn-primary:hover{ background:var(--blue-dark); }
-  .btn-primary:disabled{ opacity:.6; }
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
+  #login-error{
+    display:none;background:var(--danger-pale);color:var(--danger);font-size:13px;
+    padding:9px 12px;border-radius:8px;margin-bottom:14px;
+  }
+  .login-foot{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 
-  .main-content{ background:var(--card); padding:18px; border-radius:var(--radius); }
-  .table-controls{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
-  .table-controls .left-btns{ display:flex; gap:8px; flex-wrap:wrap; }
-  .btn-secondary{ padding:8px 14px; background:#6c757d; color:#fff; border:none; border-radius:6px; }
-  .btn-secondary:hover{ background:#545b62; }
-  .btn-refresh{ padding:8px 14px; background:#fff; color:var(--blue); border:1px solid var(--blue); border-radius:6px; }
-  .btn-refresh:hover{ background:#eef6ff; }
+  /* ---------- App shell ---------- */
+  #app{display:none;min-height:100vh;}
+  .topbar{
+    background:var(--surface);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px;position:sticky;top:0;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:30px;height:30px;border-radius:7px;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:16px;height:16px;}
+  .brand h1{font-size:16.5px;font-weight:600;}
+  .brand span{display:block;font-size:11px;color:var(--muted);font-weight:500;}
+  .top-actions{display:flex;align-items:center;gap:10px;}
+  .user-chip{font-size:13px;color:var(--muted);padding:7px 12px;background:var(--bg);border-radius:20px;}
+  .btn-ghost{
+    background:none;border:1px solid var(--line);color:var(--ink);padding:8px 14px;
+    border-radius:8px;font-size:13px;font-weight:600;
+  }
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-accent{background:var(--teal);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:600;}
+  .btn-accent:hover{background:var(--teal-dark);}
 
-  table{ width:100%; border-collapse:collapse; margin-bottom:14px; font-size:13.5px; }
-  th, td{ padding:10px 9px; text-align:left; border-bottom:1px solid var(--border); }
-  th{ background:var(--bg); color:#495057; font-weight:600; cursor:pointer; white-space:nowrap; }
-  tbody tr:hover{ background:#fafcff; }
+  main{padding:24px 28px 60px;max-width:1320px;margin:0 auto;}
 
-  .no-data{ text-align:center; color:#777; padding:36px; }
-  .status{ margin:0 0 12px; padding:10px 12px; border-radius:6px; font-size:13.5px; }
-  .success{ background:var(--success-bg); color:var(--success-fg); }
-  .error{ background:var(--error-bg); color:var(--error-fg); }
-  .sync-note{ font-size:11.5px; color:#999; margin-top:2px; }
+  /* stat strip */
+  .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .stat-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
+  .stat-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);}
+  .stat-value{font-size:30px;font-weight:600;margin-top:6px;color:var(--ink);}
+  .stat-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .stat-card.accent-amber .stat-value{color:var(--amber);}
 
-  #chartPlaceholder{ padding:18px; border:1px dashed #ccc; border-radius:6px; min-height:80px; background:#fafafa; font-size:14px; line-height:1.9; }
+  /* filter bar */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .filter-bar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:16px 18px;margin-bottom:22px;
+  }
+  .filter-field{display:flex;flex-direction:column;gap:5px;min-width:130px;flex:1;}
+  .filter-field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
+  .filter-field select, .filter-field input{padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#FBFDFD;}
+  .filter-field select:focus, .filter-field input:focus{outline:none;border-color:var(--teal);}
+  .filter-reset{background:none;border:none;color:var(--teal);font-size:12.5px;font-weight:600;padding:8px 4px;white-space:nowrap;}
 
-  /* ---------- MANAGE OPTIONS MODAL ---------- */
+  /* charts grid */
+  .charts-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:22px;}
+  .charts-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+  .chart-card{padding:18px 18px 10px;height:300px;display:flex;flex-direction:column;}
+  .chart-card h3{font-size:13.5px;font-weight:600;margin-bottom:2px;}
+  .chart-card .chart-note{font-size:11.5px;color:var(--muted);margin-bottom:10px;}
+  .chart-wrap{flex:1;position:relative;}
+
+  /* table */
+  .table-panel{padding:18px;margin-bottom:24px;}
+  .table-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+  .table-head h3{font-size:14.5px;font-weight:600;}
+  .table-actions{display:flex;gap:8px;align-items:center;}
+  #search-input{padding:8px 12px;border:1px solid var(--line);border-radius:7px;font-size:13px;width:220px;}
+  #search-input:focus{outline:none;border-color:var(--teal);}
+  .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;padding:10px 12px;background:var(--bg);color:var(--muted);
+    font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;
+    border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;color:var(--ink);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--bg);}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .badge-opd{background:var(--teal-pale);color:var(--teal-dark);}
+  .badge-ipd{background:var(--amber-pale);color:var(--amber);}
+  .empty-state{padding:48px 20px;text-align:center;color:var(--muted);}
+  .empty-state .pulse-trace{max-width:180px;margin:0 auto 14px;}
+  .empty-state p{font-size:13.5px;margin:0;}
+
+  /* modal */
   .modal-overlay{
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:80;
-    align-items:center; justify-content:center; padding:16px;
+    display:none;position:fixed;inset:0;background:rgba(15,32,39,0.45);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
   }
-  .modal-overlay.open{ display:flex; }
-  .modal-box{ background:#fff; border-radius:10px; width:100%; max-width:380px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; }
-  .modal-header{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border); }
-  .modal-header h3{ font-size:15px; color:var(--navy); }
-  .modal-header button{ background:none; border:none; font-size:20px; color:#777; line-height:1; }
-  .modal-add-row{ display:flex; gap:8px; padding:14px 16px; border-bottom:1px solid var(--border); }
-  .modal-add-row input{ flex:1; padding:9px 10px; border:1px solid #ccc; border-radius:6px; }
-  .modal-add-row button{ padding:9px 14px; background:var(--blue); color:#fff; border:none; border-radius:6px; font-weight:600; white-space:nowrap; }
-  .modal-add-row button:hover{ background:var(--blue-dark); }
-  .manage-list{ list-style:none; overflow-y:auto; padding:6px 0; }
-  .manage-list li{ display:flex; align-items:center; justify-content:space-between; padding:9px 16px; font-size:14px; border-bottom:1px solid #f1f1f1; }
-  .manage-list li button{ background:none; border:none; color:#d9534f; font-size:13px; padding:4px 8px; }
-  .manage-list li button:hover{ text-decoration:underline; }
-  .manage-empty{ padding:16px; text-align:center; color:#999; font-size:13px; }
-
-  /* ---------- TREND CONTROLS ---------- */
-  .trend-controls{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-bottom:6px; }
-  .disease-checklist{
-    border:1px solid var(--border); border-radius:6px; max-height:160px; overflow-y:auto; padding:8px 4px; background:#fafcff;
+  .modal{
+    background:var(--surface);border-radius:var(--radius);width:100%;max-width:560px;
+    max-height:90vh;overflow-y:auto;padding:26px 28px;
   }
-  .disease-checklist label{
-    display:flex; align-items:center; gap:8px; padding:6px 10px; font-size:13.5px; font-weight:400; color:#333; cursor:pointer;
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .modal-head h3{font-size:17px;font-weight:600;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:20px;line-height:1;padding:4px;}
+  .modal-close:hover{color:var(--ink);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid .field-full{grid-column:1/-1;}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
+  .options-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .tab-btn{background:var(--bg);border:1px solid var(--line);padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .tab-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .option-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:14px;}
+  .option-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:7px;font-size:13px;}
+  .option-row button{background:none;border:none;color:var(--danger);font-size:12px;font-weight:600;}
+  .add-option-row{display:flex;gap:8px;}
+  .add-option-row input{flex:1;}
+
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:11px 20px;border-radius:8px;font-size:13.5px;font-weight:500;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:200;
   }
-  .disease-checklist label:hover{ background:#eef6ff; }
-  .disease-checklist input[type="checkbox"]{ width:16px; height:16px; }
-  .trend-select-all{ font-size:12px; color:var(--blue); cursor:pointer; margin-left:2px; }
-  .trend-select-all:hover{ text-decoration:underline; }
-  .trend-dates .form-group{ margin-bottom:10px; }
-  .trend-dates .form-group:last-child{ margin-bottom:0; }
-  .trend-dates label{ display:block; font-weight:600; margin-bottom:5px; color:var(--navy); font-size:13px; }
-  .trend-dates input, .trend-dates select{ width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.error{background:var(--danger);}
 
-  @media (max-width:900px){
-    .trend-controls{ grid-template-columns:1fr 1fr; }
-  }
-  @media (max-width:640px){
-    .trend-controls{ grid-template-columns:1fr; }
-  }
+  .loading-row{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;padding:14px 4px;}
 
-  /* ---------- MOBILE FAB + BOTTOM SHEET FOR THE ENTRY FORM ---------- */
-  #fab{
-    display:none; position:fixed; right:18px; bottom:18px; width:58px; height:58px; border-radius:50%;
-    background:var(--blue); color:#fff; border:none; font-size:28px; line-height:58px; text-align:center;
-    box-shadow:0 6px 18px rgba(0,0,0,.3); z-index:40;
-  }
-  #sheetOverlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:49; }
-  .sheet-close{ display:none; text-align:right; margin-bottom:8px; }
-  .sheet-close button{ background:none; border:none; font-size:22px; color:#777; padding:4px 8px; }
-
-  /* ---------- RESPONSIVE ---------- */
-  @media (max-width:900px){
-    .container{ grid-template-columns:1fr; }
-    .sidebar{
-      display:none; position:fixed; left:0; right:0; bottom:0; top:auto; max-height:88vh; overflow-y:auto;
-      border-radius:16px 16px 0 0; z-index:50; box-shadow:0 -8px 30px rgba(0,0,0,.25);
-    }
-    .sidebar.open{ display:block; }
-    .sheet-close{ display:block; }
-    #fab{ display:block; }
-    #sheetOverlay.open{ display:block; }
-
-    header .title h1{ font-size:14.5px; }
-    header .title span{ display:none; }
-    main{ padding:10px; }
-    .main-content{ padding:12px; }
-
-    /* card-style table on small screens */
-    table, thead, tbody, th, td, tr{ display:block; }
-    thead{ display:none; }
-    tbody tr{
-      background:#fff; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; padding:8px 10px;
-    }
-    tbody td{ border:none; padding:5px 2px; display:flex; justify-content:space-between; gap:10px; font-size:13.5px; }
-    tbody td::before{ content:attr(data-label); font-weight:600; color:var(--navy); }
-    .no-data{ display:block; }
-    .table-controls{ flex-direction:column; align-items:stretch; }
-    .table-controls > div{ width:100%; }
-    .table-controls .left-btns{ justify-content:space-between; }
-    .table-controls select, .table-controls input[type="search"]{ width:100%; padding:9px; }
-  }
-
-  @media (min-width:901px){
-    .sheet-close{ display:none !important; }
+  @media (max-width: 900px){
+    .stat-strip{grid-template-columns:repeat(2,1fr);}
+    .charts-grid, .charts-grid-2{grid-template-columns:1fr;}
+    .chart-card{height:260px;}
+    main{padding:18px 14px 50px;}
+    .topbar{padding:12px 16px;}
+    .form-grid{grid-template-columns:1fr;}
+    #search-input{width:150px;}
   }
 </style>
 </head>
 <body>
 
-  <!-- ===================== LOGIN SCREEN ===================== -->
-  <div id="loginScreen">
-    <div class="login-card">
-      <h1>Health Informatics Dashboard</h1>
-      <p class="sub">Station Health Organisation, Shakurbasti</p>
-      <div id="loginError"></div>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginUser">Username</label>
-          <input type="text" id="loginUser" autocomplete="username" required>
-        </div>
-        <div class="form-group">
-          <label for="loginPass">Password</label>
-          <input type="password" id="loginPass" autocomplete="current-password" required>
-        </div>
-        <button type="submit" class="btn-primary" id="loginBtn">Login</button>
-      </form>
-      <div class="login-foot">Access restricted to authorised SHO Shakurbasti personnel.</div>
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-eyebrow">Restricted access</div>
+    <h1>Health Informatics Dashboard</h1>
+    <p class="login-sub">Sign in with your assigned credentials to continue.</p>
+    <svg class="pulse-trace dim" viewBox="0 0 400 34" preserveAspectRatio="none" style="margin-bottom:18px;">
+      <path d="M0,17 L120,17 L136,4 L152,30 L168,17 L400,17"/>
+    </svg>
+    <div id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+    </form>
+    <div class="login-foot">
+      <p class="login-sub" style="margin:0;">Access is provisioned by an administrator via the linked spreadsheet.</p>
     </div>
   </div>
+</div>
 
-  <!-- ===================== APP ===================== -->
-  <div id="app">
-    <header>
-      <div class="title">
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 8 4-16 2 8h6"/></svg>
+      </div>
+      <div>
         <h1>Health Informatics Dashboard</h1>
-        <span>Station Health Organisation, Shakurbasti</span>
+        <span>Case records &amp; trend overview</span>
       </div>
-      <div class="user-box">
-        <span id="whoami"></span>
-        <button id="logoutBtn">Logout</button>
-      </div>
-    </header>
-
-    <main>
-      <div class="container">
-
-        <div id="sheetOverlay"></div>
-        <aside class="sidebar" id="sidebar">
-          <div class="sheet-close"><button id="closeSheet">✕</button></div>
-          <h3>Add New Case</h3>
-
-          <div class="form-group">
-            <label for="patientName">Patient Name</label>
-            <input type="text" id="patientName" placeholder="Enter patient name">
-          </div>
-
-          <div class="form-group">
-            <label for="patientType">Patient Type</label>
-            <select id="patientType">
-              <option>Serving</option>
-              <option>Dependent</option>
-              <option>Ex-Serviceman</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="opdIpd">OPD/IPD</label>
-            <select id="opdIpd">
-              <option>OPD</option>
-              <option>IPD</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="disease">Disease</label>
-            <select id="disease"></select>
-            <div class="add-option" onclick="openManageModal('Disease')">Manage diseases</div>
-          </div>
-
-          <div class="form-group">
-            <label for="originType">Local / Imported</label>
-            <select id="originType">
-              <option>Local</option>
-              <option>Imported</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="dateOccurrence">Date of Occurrence</label>
-            <input type="date" id="dateOccurrence">
-          </div>
-
-          <div class="form-group">
-            <label for="patientAge">Patient Age</label>
-            <input type="number" id="patientAge" placeholder="Age" min="0">
-          </div>
-
-          <div class="form-group">
-            <label for="gender">Gender</label>
-            <select id="gender">
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="location">Location / Station</label>
-            <select id="location"></select>
-            <div class="add-option" onclick="openManageModal('Location')">Manage stations</div>
-          </div>
-
-          <button class="btn-primary" id="addEntryBtn" onclick="addEntry()">Add Entry</button>
-        </aside>
-
-        <main class="main-content">
-          <div id="statusHost"></div>
-
-          <div class="table-controls">
-            <div class="left-btns">
-              <button class="btn-refresh" onclick="loadAll()">⟳ Refresh</button>
-              <button class="btn-secondary" onclick="exportToCSV()">Export CSV</button>
-            </div>
-            <div>
-              Show
-              <select id="entriesPerPage" onchange="renderTable()">
-                <option value="10">10</option>
-                <option value="25" selected>25</option>
-                <option value="50">50</option>
-                <option value="100000">All</option>
-              </select> entries
-            </div>
-            <div>
-              <input type="search" id="searchInput" onkeyup="renderTable()" placeholder="Search...">
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th onclick="sortTable('PatientName')">Patient Name</th>
-                <th onclick="sortTable('PatientType')">Type</th>
-                <th onclick="sortTable('OPD_IPD')">OPD/IPD</th>
-                <th onclick="sortTable('Disease')">Disease</th>
-                <th onclick="sortTable('OriginType')">Origin</th>
-                <th onclick="sortTable('Date')">Date</th>
-                <th onclick="sortTable('Age')">Age</th>
-                <th onclick="sortTable('Gender')">Gender</th>
-                <th onclick="sortTable('Location')">Location</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-
-          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; font-size:13px; color:#666;">
-            <div id="tableInfo">Showing 0 to 0 of 0 entries</div>
-            <div class="sync-note" id="syncNote"></div>
-          </div>
-
-          <hr style="margin:22px 0; border:1px solid #eee;">
-
-          <div>
-            <h2 style="color:#d9534f; font-size:17px; margin-bottom:14px;">Disease Trend</h2>
-
-            <div class="trend-controls">
-              <div>
-                <label style="font-weight:600; font-size:13px; color:var(--navy);">Diseases</label>
-                <span class="trend-select-all" onclick="toggleAllDiseases()">(select/clear all)</span>
-                <div class="disease-checklist" id="diseaseChecklist"></div>
-              </div>
-              <div>
-                <label style="font-weight:600; font-size:13px; color:var(--navy);">Locations</label>
-                <span class="trend-select-all" onclick="toggleAllLocations()">(select/clear all)</span>
-                <div class="disease-checklist" id="locationChecklist"></div>
-              </div>
-              <div class="trend-dates">
-                <div class="form-group">
-                  <label for="trendFrom">From</label>
-                  <input type="date" id="trendFrom" onchange="updateTrendChart()">
-                </div>
-                <div class="form-group">
-                  <label for="trendTo">To</label>
-                  <input type="date" id="trendTo" onchange="updateTrendChart()">
-                </div>
-                <div class="form-group">
-                  <label for="trendGroup">Group by</label>
-                  <select id="trendGroup" onchange="updateTrendChart()">
-                    <option value="day">Day</option>
-                    <option value="week" selected>Week</option>
-                    <option value="month">Month</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div id="chartPlaceholder">Loading data…</div>
-            <div style="position:relative; height:320px; margin-top:6px; display:none;" id="trendChartWrap">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-        </main>
-
-      </div>
-    </main>
-
-    <button id="fab" onclick="openSheet()">+</button>
-
-    <div class="modal-overlay" id="manageModal">
-      <div class="modal-box">
-        <div class="modal-header">
-          <h3 id="manageModalTitle">Manage Diseases</h3>
-          <button onclick="closeManageModal()">✕</button>
-        </div>
-        <div class="modal-add-row">
-          <input type="text" id="manageNewValue" placeholder="Add new...">
-          <button onclick="manageAddItem()">Add</button>
-        </div>
-        <ul class="manage-list" id="manageList"></ul>
-      </div>
+    </div>
+    <div class="top-actions">
+      <span class="user-chip" id="user-chip">—</span>
+      <button class="btn-ghost" id="manage-options-btn">Manage options</button>
+      <button class="btn-accent" id="add-entry-btn">+ Add entry</button>
+      <button class="btn-ghost" id="logout-btn">Log out</button>
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <main>
+    <!-- stat strip -->
+    <div class="stat-strip">
+      <div class="stat-card">
+        <div class="stat-label">Total cases</div>
+        <div class="stat-value num" id="stat-total">0</div>
+        <div class="stat-sub" id="stat-total-sub">All recorded entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">OPD</div>
+        <div class="stat-value num" id="stat-opd">0</div>
+        <div class="stat-sub">Outpatient</div>
+      </div>
+      <div class="stat-card accent-amber">
+        <div class="stat-label">IPD</div>
+        <div class="stat-value num" id="stat-ipd">0</div>
+        <div class="stat-sub">Inpatient</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">This month</div>
+        <div class="stat-value num" id="stat-month">0</div>
+        <div class="stat-sub" id="stat-month-sub">—</div>
+      </div>
+    </div>
+
+    <!-- filters -->
+    <div class="panel filter-bar">
+      <div class="filter-field">
+        <label>From date</label>
+        <input type="date" id="filter-from">
+      </div>
+      <div class="filter-field">
+        <label>To date</label>
+        <input type="date" id="filter-to">
+      </div>
+      <div class="filter-field">
+        <label>Patient type</label>
+        <select id="filter-patient-type"><option value="">All</option></select>
+      </div>
+      <div class="filter-field">
+        <label>OPD / IPD</label>
+        <select id="filter-opd-ipd"><option value="">All</option><option value="OPD">OPD</option><option value="IPD">IPD</option></select>
+      </div>
+      <div class="filter-field">
+        <label>Disease</label>
+        <select id="filter-disease"><option value="">All</option></select>
+      </div>
+      <div class="filter-field">
+        <label>Origin type</label>
+        <select id="filter-origin"><option value="">All</option><option>Local</option><option>Imported</option></select>
+      </div>
+      <div class="filter-field">
+        <label>Location</label>
+        <select id="filter-location"><option value="">All</option></select>
+      </div>
+      <button class="filter-reset" id="filter-reset-btn">Reset filters</button>
+    </div>
+
+    <!-- charts -->
+    <div class="charts-grid">
+      <div class="panel chart-card">
+        <h3>Cases over time</h3>
+        <div class="chart-note">Daily case volume for the filtered range</div>
+        <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
+      </div>
+      <div class="panel chart-card">
+        <h3>OPD vs IPD</h3>
+        <div class="chart-note">Share of filtered cases</div>
+        <div class="chart-wrap"><canvas id="chart-opdipd"></canvas></div>
+      </div>
+    </div>
+    <div class="charts-grid-2">
+      <div class="panel chart-card">
+        <h3>Cases by disease</h3>
+        <div class="chart-note">Top conditions in the filtered range</div>
+        <div class="chart-wrap"><canvas id="chart-disease"></canvas></div>
+      </div>
+      <div class="panel chart-card">
+        <h3>Cases by patient type</h3>
+        <div class="chart-note">Serving / dependent / other categories</div>
+        <div class="chart-wrap"><canvas id="chart-patienttype"></canvas></div>
+      </div>
+    </div>
+
+    <!-- table -->
+    <div class="panel table-panel">
+      <div class="table-head">
+        <h3>Case records</h3>
+        <div class="table-actions">
+          <input type="text" id="search-input" placeholder="Search records…">
+          <button class="btn-ghost" id="export-csv-btn">Export CSV</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>Patient</th><th>Type</th><th>OPD/IPD</th>
+              <th>Disease</th><th>Origin</th><th>Age</th><th>Gender</th><th>Location</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <svg class="pulse-trace dim" viewBox="0 0 400 34" preserveAspectRatio="none"><path d="M0,17 L160,17 L176,4 L192,30 L208,17 L400,17"/></svg>
+        <p>No records match the current filters.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ ADD ENTRY MODAL ============ -->
+<div class="modal-overlay" id="entry-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add case entry</h3>
+      <button class="modal-close" id="entry-modal-close">&times;</button>
+    </div>
+    <form id="entry-form">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label for="f-patientName">Patient name</label>
+          <input type="text" id="f-patientName" required>
+        </div>
+        <div class="field">
+          <label for="f-patientType">Patient type</label>
+          <select id="f-patientType" required>
+            <option value="">Select…</option>
+            <option>Serving</option>
+            <option>Dependent</option>
+            <option>Ex-Serviceman</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-opdIpd">OPD / IPD</label>
+          <select id="f-opdIpd" required>
+            <option value="">Select…</option>
+            <option>OPD</option>
+            <option>IPD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-disease">Disease</label>
+          <select id="f-disease" required></select>
+        </div>
+        <div class="field">
+          <label for="f-originType">Origin type</label>
+          <select id="f-originType" required>
+            <option value="">Select…</option>
+            <option>Local</option>
+            <option>Imported</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-date">Date</label>
+          <input type="date" id="f-date" required>
+        </div>
+        <div class="field">
+          <label for="f-age">Age</label>
+          <input type="number" id="f-age" min="0" max="120" required>
+        </div>
+        <div class="field">
+          <label for="f-gender">Gender</label>
+          <select id="f-gender" required>
+            <option value="">Select…</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field field-full">
+          <label for="f-location">Location</label>
+          <select id="f-location" required></select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="entry-cancel-btn">Cancel</button>
+        <button type="submit" class="btn-accent" id="entry-submit-btn">Save entry</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MANAGE OPTIONS MODAL ============ -->
+<div class="modal-overlay" id="options-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Manage dropdown options</h3>
+      <button class="modal-close" id="options-modal-close">&times;</button>
+    </div>
+    <div class="options-tabs">
+      <button class="tab-btn active" data-type="Disease">Diseases</button>
+      <button class="tab-btn" data-type="Location">Locations</button>
+    </div>
+    <div class="option-list" id="option-list"></div>
+    <div class="add-option-row">
+      <input type="text" id="new-option-input" placeholder="Add new value…">
+      <button class="btn-accent" id="add-option-btn">Add</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
-/* =========================================================================
-   CONFIG — paste the Web App URL you get after deploying Code.gs here
-   ========================================================================= */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi3kZ4Y-gNIiDKoSQZY5aZp5eTjeY-MqvSxsv5bMniKQEXVqAf9hbknqb36Ocu-FYv/exec';
+/* =====================================================================
+   CONFIG — paste your Apps Script /exec Web App URL here
+   ===================================================================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9bnsWGrOEyl8WaQl--LPPRbiXXtiQ6JBZLowEHT7iTywMGN289vX565NtoczUEZqg/exec';
 
-/* =========================================================================
-   STATE
-   ========================================================================= */
-let data = [];
-let diseases = [];
-let locations = [];
-let sortCol = 'Date';
-let sortDir = 'desc';
-let manageType = null;       // 'Disease' | 'Location' — which list the modal is managing
-let trendChart = null;       // Chart.js instance
-let trendRangeInitialised = false;
+/* =====================================================================
+   State
+   ===================================================================== */
+let allData = [];
+let options = { diseases: [], locations: [] };
+let currentUser = null;
+let charts = {};
+let activeOptionTab = 'Disease';
 
-const DISEASE_COLORS = ['#007bff','#d9534f','#28a745','#f0ad4e','#6f42c1','#17a2b8','#e83e8c','#795548','#20c997','#fd7e14'];
-
-/* =========================================================================
-   API HELPERS
-   Note: POST requests use Content-Type: text/plain to avoid a CORS
-   preflight, which Apps Script web apps do not handle. Apps Script still
-   parses the body as JSON on the server side.
-   ========================================================================= */
-async function apiGet(action) {
+/* =====================================================================
+   API helpers
+   ===================================================================== */
+async function apiGet(action){
   const res = await fetch(`${APPS_SCRIPT_URL}?action=${action}`);
+  if(!res.ok) throw new Error('Network error ('+res.status+')');
   return res.json();
 }
-async function apiPost(payload) {
+async function apiPost(payload){
   const res = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    method:'POST',
     body: JSON.stringify(payload)
   });
+  if(!res.ok) throw new Error('Network error ('+res.status+')');
   return res.json();
 }
 
-/* =========================================================================
-   AUTH
-   ========================================================================= */
-function checkConfigured() {
-  if (APPS_SCRIPT_URL.includes('PASTE_YOUR')) {
-    document.getElementById('loginError').textContent =
-      'Setup incomplete: add your Apps Script Web App URL in index.html (APPS_SCRIPT_URL) before logging in.';
-    document.getElementById('loginError').style.display = 'block';
-    return false;
-  }
-  return true;
+function showToast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'show error' : 'show';
+  setTimeout(()=> t.className = '', 2600);
 }
 
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+/* =====================================================================
+   Login
+   ===================================================================== */
+document.getElementById('login-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if (!checkConfigured()) return;
-
-  const username = document.getElementById('loginUser').value.trim();
-  const password = document.getElementById('loginPass').value;
-  const btn = document.getElementById('loginBtn');
-  const errBox = document.getElementById('loginError');
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  const errBox = document.getElementById('login-error');
   errBox.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
-  try {
-    const result = await apiPost({ action: 'login', username, password });
-    if (result.success) {
-      sessionStorage.setItem('sho_user', result.username);
-      enterApp(result.username);
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try{
+    const result = await apiPost({ action:'login', username, password });
+    if(result.success){
+      currentUser = result.username;
+      sessionStorage.setItem('hid_user', currentUser);
+      enterApp();
     } else {
       errBox.textContent = result.message || 'Invalid username or password';
       errBox.style.display = 'block';
     }
-  } catch (err) {
-    errBox.textContent = 'Could not reach the server. Check your connection or the Apps Script URL.';
+  } catch(err){
+    errBox.textContent = 'Could not reach the server. Check APPS_SCRIPT_URL and your connection.';
     errBox.style.display = 'block';
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Login';
+    btn.disabled = false; btn.textContent = 'Sign in';
   }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('sho_user');
+document.getElementById('logout-btn').addEventListener('click', ()=>{
+  sessionStorage.removeItem('hid_user');
+  currentUser = null;
   document.getElementById('app').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginPass').value = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-form').reset();
 });
 
-function enterApp(username) {
-  document.getElementById('loginScreen').style.display = 'none';
+async function enterApp(){
+  document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('whoami').textContent = username;
-  document.getElementById('dateOccurrence').value = new Date().toISOString().slice(0, 10);
-  loadAll();
+  document.getElementById('user-chip').textContent = currentUser;
+  await loadOptions();
+  await loadData();
+  initCharts();
+  applyFilters();
 }
 
-/* Auto-login if a session already exists in this tab */
-window.addEventListener('load', () => {
-  const existing = sessionStorage.getItem('sho_user');
-  if (existing && checkConfigured()) enterApp(existing);
-});
-
-/* =========================================================================
-   MOBILE BOTTOM-SHEET FORM
-   ========================================================================= */
-function openSheet() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sheetOverlay').classList.add('open');
-}
-function closeSheetFn() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sheetOverlay').classList.remove('open');
-}
-document.getElementById('closeSheet').addEventListener('click', closeSheetFn);
-document.getElementById('sheetOverlay').addEventListener('click', closeSheetFn);
-
-document.getElementById('manageModal').addEventListener('click', (e) => {
-  if (e.target.id === 'manageModal') closeManageModal();
-});
-
-/* =========================================================================
-   DATA LOADING
-   ========================================================================= */
-async function loadAll() {
-  showStatus('Syncing with Google Sheet…', 'success', 1200);
-  try {
-    const [dataRes, optsRes] = await Promise.all([apiGet('getData'), apiGet('getOptions')]);
-    data = Array.isArray(dataRes) ? dataRes : [];
-    diseases = (optsRes && optsRes.diseases) || [];
-    locations = (optsRes && optsRes.locations) || [];
-    populateSelects();
-    renderTable();
-    updateTrendChart();
-    document.getElementById('syncNote').textContent = 'Last synced: ' + new Date().toLocaleTimeString();
-  } catch (err) {
-    showStatus('Could not sync with Google Sheet. Showing last loaded data.', 'error', 4000);
+/* =====================================================================
+   Data loading
+   ===================================================================== */
+async function loadData(){
+  try{
+    allData = await apiGet('getData');
+  } catch(err){
+    showToast('Failed to load data from the sheet.', true);
+    allData = [];
   }
 }
 
-function populateSelects() {
-  document.getElementById('disease').innerHTML = diseases.map(d => `<option>${escapeHtml(d)}</option>`).join('');
-  document.getElementById('location').innerHTML = locations.map(l => `<option>${escapeHtml(l)}</option>`).join('');
-  populateDiseaseChecklist();
-  populateLocationChecklist();
-}
-
-/* ---------- Disease / Location checklists (used by the trend chart) ---------- */
-function populateChecklist(hostId, values) {
-  const host = document.getElementById(hostId);
-  const previouslyChecked = new Set(
-    [...host.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value)
-  );
-  const isFirstRun = host.dataset.initialised !== 'true';
-
-  host.innerHTML = values.map(v => `
-    <label>
-      <input type="checkbox" value="${escapeHtml(v)}" onchange="updateTrendChart()"
-        ${isFirstRun || previouslyChecked.has(v) ? 'checked' : ''}>
-      ${escapeHtml(v)}
-    </label>
-  `).join('');
-  host.dataset.initialised = 'true';
-}
-function populateDiseaseChecklist() { populateChecklist('diseaseChecklist', diseases); }
-function populateLocationChecklist() { populateChecklist('locationChecklist', locations); }
-
-function toggleAllDiseases() {
-  const boxes = document.querySelectorAll('#diseaseChecklist input[type="checkbox"]');
-  const anyUnchecked = [...boxes].some(cb => !cb.checked);
-  boxes.forEach(cb => cb.checked = anyUnchecked);
-  updateTrendChart();
-}
-function toggleAllLocations() {
-  const boxes = document.querySelectorAll('#locationChecklist input[type="checkbox"]');
-  const anyUnchecked = [...boxes].some(cb => !cb.checked);
-  boxes.forEach(cb => cb.checked = anyUnchecked);
-  updateTrendChart();
-}
-
-/* ---------- Manage (add/delete) diseases & locations ---------- */
-function openManageModal(type) {
-  manageType = type;
-  document.getElementById('manageModalTitle').textContent = type === 'Disease' ? 'Manage Diseases' : 'Manage Stations';
-  document.getElementById('manageNewValue').value = '';
-  renderManageList();
-  document.getElementById('manageModal').classList.add('open');
-}
-function closeManageModal() {
-  document.getElementById('manageModal').classList.remove('open');
-  manageType = null;
-}
-function renderManageList() {
-  const list = manageType === 'Disease' ? diseases : locations;
-  const host = document.getElementById('manageList');
-  if (list.length === 0) {
-    host.innerHTML = `<li class="manage-empty">Nothing here yet</li>`;
-    return;
+async function loadOptions(){
+  try{
+    options = await apiGet('getOptions');
+  } catch(err){
+    options = { diseases:[], locations:[] };
   }
-  host.innerHTML = list.map(v => `
-    <li>
-      <span>${escapeHtml(v)}</span>
-      <button onclick="manageDeleteItem('${escapeJs(v)}')">Delete</button>
-    </li>
-  `).join('');
+  populateSelect('filter-disease', options.diseases, true);
+  populateSelect('filter-location', options.locations, true);
+  populateSelect('f-disease', options.diseases, false);
+  populateSelect('f-location', options.locations, false);
+
+  const patientTypes = ['Serving','Dependent','Ex-Serviceman'];
+  populateSelect('filter-patient-type', patientTypes, true);
 }
 
-async function manageAddItem() {
-  const input = document.getElementById('manageNewValue');
-  const val = input.value.trim();
-  if (!val) return;
-  const list = manageType === 'Disease' ? diseases : locations;
-  if (list.includes(val)) { showStatus('That value already exists', 'error'); return; }
-
-  list.push(val);
-  renderManageList();
-  populateSelects();
-  input.value = '';
-
-  try {
-    const res = await apiPost({ action: 'addOption', optionType: manageType, value: val });
-    if (!res.success) throw new Error(res.message);
-    showStatus(`"${val}" added`, 'success');
-  } catch (err) {
-    showStatus(`Saved locally, but could not sync "${val}" to the sheet`, 'error');
+function populateSelect(id, values, withAllOption){
+  const sel = document.getElementById(id);
+  const keepFirst = withAllOption ? 1 : 0;
+  while(sel.options.length > keepFirst) sel.remove(sel.options.length-1);
+  if(!withAllOption){
+    const placeholder = document.createElement('option');
+    placeholder.value=''; placeholder.textContent='Select…';
+    sel.appendChild(placeholder);
   }
-}
-
-async function manageDeleteItem(val) {
-  if (!confirm(`Remove "${val}" from the list? Past entries already using it are not affected.`)) return;
-  const list = manageType === 'Disease' ? diseases : locations;
-  const idx = list.indexOf(val);
-  if (idx > -1) list.splice(idx, 1);
-  renderManageList();
-  populateSelects();
-
-  try {
-    const res = await apiPost({ action: 'deleteOption', optionType: manageType, value: val });
-    if (!res.success) throw new Error(res.message);
-    showStatus(`"${val}" removed`, 'success');
-  } catch (err) {
-    showStatus(`Removed locally, but could not sync the deletion to the sheet`, 'error');
-  }
-}
-
-/* =========================================================================
-   ADD ENTRY
-   ========================================================================= */
-async function addEntry() {
-  const name = document.getElementById('patientName').value.trim();
-  if (!name) return alert('Patient Name is required');
-
-  const entry = {
-    patientName: name,
-    patientType: document.getElementById('patientType').value,
-    opdIpd: document.getElementById('opdIpd').value,
-    disease: document.getElementById('disease').value,
-    originType: document.getElementById('originType').value,
-    date: document.getElementById('dateOccurrence').value,
-    age: parseInt(document.getElementById('patientAge').value) || '',
-    gender: document.getElementById('gender').value,
-    location: document.getElementById('location').value
-  };
-
-  const btn = document.getElementById('addEntryBtn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  try {
-    const result = await apiPost({ action: 'addEntry', entry });
-    if (result.success) {
-      showStatus('Entry saved to Google Sheet', 'success');
-      document.getElementById('patientName').value = '';
-      document.getElementById('patientAge').value = '';
-      closeSheetFn();
-      await loadAll();
-    } else {
-      showStatus(result.message || 'Could not save entry', 'error');
-    }
-  } catch (err) {
-    showStatus('Network error — entry was not saved. Please try again.', 'error', 4000);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Add Entry';
-  }
-}
-
-/* =========================================================================
-   TABLE RENDER / SORT / SEARCH
-   ========================================================================= */
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '';
-
-  let filtered = [...data];
-  const term = document.getElementById('searchInput').value.toLowerCase().trim();
-  if (term) {
-    filtered = filtered.filter(row => Object.values(row).some(val => String(val).toLowerCase().includes(term)));
-  }
-
-  filtered.sort((a, b) => {
-    let va = a[sortCol], vb = b[sortCol];
-    if (sortCol === 'Date') { va = new Date(va); vb = new Date(vb); }
-    if (va < vb) return sortDir === 'asc' ? -1 : 1;
-    if (va > vb) return sortDir === 'asc' ? 1 : -1;
-    return 0;
+  values.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
   });
-
-  const perPage = parseInt(document.getElementById('entriesPerPage').value);
-  const displayData = filtered.slice(0, perPage);
-
-  if (displayData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="no-data">No data available</td></tr>`;
-  } else {
-    displayData.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td data-label="Patient Name">${escapeHtml(row.PatientName)}</td>
-        <td data-label="Type">${escapeHtml(row.PatientType)}</td>
-        <td data-label="OPD/IPD">${escapeHtml(row.OPD_IPD)}</td>
-        <td data-label="Disease">${escapeHtml(row.Disease)}</td>
-        <td data-label="Origin">${escapeHtml(row.OriginType)}</td>
-        <td data-label="Date">${escapeHtml(row.Date)}</td>
-        <td data-label="Age">${escapeHtml(row.Age)}</td>
-        <td data-label="Gender">${escapeHtml(row.Gender)}</td>
-        <td data-label="Location">${escapeHtml(row.Location)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  document.getElementById('tableInfo').textContent = `Showing 1 to ${displayData.length} of ${filtered.length} entries`;
 }
 
-function sortTable(col) {
-  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-  else { sortCol = col; sortDir = 'desc'; }
-  renderTable();
-}
+/* =====================================================================
+   Filters
+   ===================================================================== */
+['filter-from','filter-to','filter-patient-type','filter-opd-ipd','filter-disease','filter-origin','filter-location','search-input']
+  .forEach(id => document.getElementById(id).addEventListener('input', applyFilters));
 
-/* =========================================================================
-   TREND CHART (disease + multi-disease trend, with date range & grouping)
-   ========================================================================= */
-function initTrendDateRange() {
-  if (trendRangeInitialised || data.length === 0) return;
-  const validDates = data.map(r => r.Date).filter(Boolean).sort();
-  if (validDates.length === 0) return;
-  document.getElementById('trendFrom').value = validDates[0];
-  document.getElementById('trendTo').value = validDates[validDates.length - 1];
-  trendRangeInitialised = true;
-}
+document.getElementById('filter-reset-btn').addEventListener('click', ()=>{
+  ['filter-from','filter-to','filter-patient-type','filter-opd-ipd','filter-disease','filter-origin','filter-location','search-input']
+    .forEach(id => document.getElementById(id).value = '');
+  applyFilters();
+});
 
-function bucketKey(dateStr, groupBy) {
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d)) return null;
-  if (groupBy === 'day') return dateStr;
-  if (groupBy === 'month') return dateStr.slice(0, 7); // YYYY-MM
-  // week: key = ISO Monday of that week
-  const day = (d.getDay() + 6) % 7; // Mon=0..Sun=6
-  d.setDate(d.getDate() - day);
-  return d.toISOString().slice(0, 10);
-}
+function getFiltered(){
+  const from = document.getElementById('filter-from').value;
+  const to = document.getElementById('filter-to').value;
+  const pType = document.getElementById('filter-patient-type').value;
+  const opdIpd = document.getElementById('filter-opd-ipd').value;
+  const disease = document.getElementById('filter-disease').value;
+  const origin = document.getElementById('filter-origin').value;
+  const location = document.getElementById('filter-location').value;
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
 
-function updateTrendChart() {
-  const placeholder = document.getElementById('chartPlaceholder');
-  const chartWrap = document.getElementById('trendChartWrap');
-
-  if (data.length === 0) {
-    placeholder.style.display = 'block';
-    placeholder.innerHTML = 'No data yet.<br>Use "Add New Case" to add the first entry.';
-    chartWrap.style.display = 'none';
-    if (trendChart) { trendChart.destroy(); trendChart = null; }
-    return;
-  }
-
-  initTrendDateRange();
-
-  const from = document.getElementById('trendFrom').value;
-  const to = document.getElementById('trendTo').value;
-  const groupBy = document.getElementById('trendGroup').value;
-  const selectedDiseases = [...document.querySelectorAll('#diseaseChecklist input:checked')].map(cb => cb.value);
-  const selectedLocations = [...document.querySelectorAll('#locationChecklist input:checked')].map(cb => cb.value);
-
-  if (selectedDiseases.length === 0) {
-    placeholder.style.display = 'block';
-    placeholder.innerHTML = 'Select at least one disease above to see its trend.';
-    chartWrap.style.display = 'none';
-    if (trendChart) { trendChart.destroy(); trendChart = null; }
-    return;
-  }
-  if (selectedLocations.length === 0) {
-    placeholder.style.display = 'block';
-    placeholder.innerHTML = 'Select at least one location above to see its trend.';
-    chartWrap.style.display = 'none';
-    if (trendChart) { trendChart.destroy(); trendChart = null; }
-    return;
-  }
-  if (typeof Chart === 'undefined') {
-    placeholder.style.display = 'block';
-    placeholder.innerHTML = 'Chart library failed to load — check your internet connection and refresh the page.';
-    chartWrap.style.display = 'none';
-    return;
-  }
-
-  const inRange = data.filter(r => {
-    if (!r.Date) return false;
-    if (from && r.Date < from) return false;
-    if (to && r.Date > to) return false;
-    if (!selectedDiseases.includes(r.Disease)) return false;
-    if (!selectedLocations.includes(r.Location)) return false;
+  return allData.filter(r=>{
+    if(from && r.Date && r.Date < from) return false;
+    if(to && r.Date && r.Date > to) return false;
+    if(pType && r.PatientType !== pType) return false;
+    if(opdIpd && r.OPD_IPD !== opdIpd) return false;
+    if(disease && r.Disease !== disease) return false;
+    if(origin && r.OriginType !== origin) return false;
+    if(location && r.Location !== location) return false;
+    if(search){
+      const hay = `${r.PatientName} ${r.Disease} ${r.Location} ${r.PatientType}`.toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
     return true;
   });
+}
 
-  if (inRange.length === 0) {
-    placeholder.style.display = 'block';
-    placeholder.innerHTML = 'No cases found for the selected disease(s), location(s) and date range.';
-    chartWrap.style.display = 'none';
-    if (trendChart) { trendChart.destroy(); trendChart = null; }
+function applyFilters(){
+  const filtered = getFiltered();
+  renderStats(filtered);
+  renderTable(filtered);
+  renderCharts(filtered);
+}
+
+/* =====================================================================
+   Stats
+   ===================================================================== */
+function renderStats(rows){
+  document.getElementById('stat-total').textContent = rows.length;
+  document.getElementById('stat-opd').textContent = rows.filter(r=>r.OPD_IPD==='OPD').length;
+  document.getElementById('stat-ipd').textContent = rows.filter(r=>r.OPD_IPD==='IPD').length;
+
+  const now = new Date();
+  const ym = now.toISOString().slice(0,7);
+  const monthCount = rows.filter(r=> r.Date && r.Date.startsWith(ym)).length;
+  document.getElementById('stat-month').textContent = monthCount;
+  document.getElementById('stat-month-sub').textContent = now.toLocaleString('default',{month:'long', year:'numeric'});
+  document.getElementById('stat-total-sub').textContent = `${allData.length} total in sheet`;
+}
+
+/* =====================================================================
+   Table
+   ===================================================================== */
+function renderTable(rows){
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+  tbody.innerHTML = '';
+  if(rows.length === 0){
+    empty.style.display = 'block';
     return;
   }
-
-  // Build { bucketKey: { disease: count } }, and collect sorted bucket keys
-  const buckets = {};
-  inRange.forEach(r => {
-    const key = bucketKey(r.Date, groupBy);
-    if (!key) return;
-    if (!buckets[key]) buckets[key] = {};
-    buckets[key][r.Disease] = (buckets[key][r.Disease] || 0) + 1;
+  empty.style.display = 'none';
+  const sorted = [...rows].sort((a,b)=> (b.Date||'').localeCompare(a.Date||''));
+  sorted.forEach(r=>{
+    const tr = document.createElement('tr');
+    const badgeClass = r.OPD_IPD === 'IPD' ? 'badge-ipd' : 'badge-opd';
+    tr.innerHTML = `
+      <td>${escapeHtml(r.Date||'')}</td>
+      <td>${escapeHtml(r.PatientName||'')}</td>
+      <td>${escapeHtml(r.PatientType||'')}</td>
+      <td><span class="badge ${badgeClass}">${escapeHtml(r.OPD_IPD||'')}</span></td>
+      <td>${escapeHtml(r.Disease||'')}</td>
+      <td>${escapeHtml(r.OriginType||'')}</td>
+      <td>${escapeHtml(String(r.Age||''))}</td>
+      <td>${escapeHtml(r.Gender||'')}</td>
+      <td>${escapeHtml(r.Location||'')}</td>
+    `;
+    tbody.appendChild(tr);
   });
-  const sortedKeys = Object.keys(buckets).sort();
+}
 
-  const labels = sortedKeys.map(k => formatBucketLabel(k, groupBy));
-  const datasets = selectedDiseases.map((disease, i) => ({
-    label: disease,
-    data: sortedKeys.map(k => buckets[k][disease] || 0),
-    borderColor: DISEASE_COLORS[i % DISEASE_COLORS.length],
-    backgroundColor: DISEASE_COLORS[i % DISEASE_COLORS.length],
-    tension: 0.25,
-    fill: false,
-    pointRadius: 3
-  }));
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-  placeholder.style.display = 'none';
-  chartWrap.style.display = 'block';
+/* =====================================================================
+   Charts
+   ===================================================================== */
+function chartColors(){
+  return {
+    teal: '#0E7C7B', tealPale:'rgba(14,124,123,0.15)',
+    amber:'#D98E3B', amberPale:'rgba(217,142,59,0.18)',
+    ink:'#0F2027', muted:'#5C707A', line:'#DEE7E9',
+    palette:['#0E7C7B','#D98E3B','#5C8AA6','#B4693E','#7C9885','#C0503D','#8A7BAE','#4E8F8F']
+  };
+}
 
-  if (trendChart) trendChart.destroy();
-  trendChart = new Chart(document.getElementById('trendChart'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Cases' } },
-        x: { title: { display: true, text: groupBy.charAt(0).toUpperCase() + groupBy.slice(1) } }
-      },
-      plugins: { legend: { position: 'bottom' } }
+function initCharts(){
+  const c = chartColors();
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{ x:{grid:{display:false}, ticks:{color:c.muted, font:{size:11}}}, y:{grid:{color:c.line}, ticks:{color:c.muted, font:{size:11}}} }
+  };
+
+  charts.trend = new Chart(document.getElementById('chart-trend'), {
+    type:'line',
+    data:{ labels:[], datasets:[{ data:[], borderColor:c.teal, backgroundColor:c.tealPale, fill:true, tension:0.35, pointRadius:0, borderWidth:2 }] },
+    options: baseOpts
+  });
+
+  charts.opdipd = new Chart(document.getElementById('chart-opdipd'), {
+    type:'doughnut',
+    data:{ labels:['OPD','IPD'], datasets:[{ data:[0,0], backgroundColor:[c.teal, c.amber], borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:12}, color:c.ink}} } }
+  });
+
+  charts.disease = new Chart(document.getElementById('chart-disease'), {
+    type:'bar',
+    data:{ labels:[], datasets:[{ data:[], backgroundColor:c.teal, borderRadius:4, maxBarThickness:28 }] },
+    options:{ ...baseOpts, indexAxis:'y', scales:{ x:{grid:{color:c.line}, ticks:{color:c.muted, font:{size:11}}}, y:{grid:{display:false}, ticks:{color:c.muted, font:{size:11}}} } }
+  });
+
+  charts.patienttype = new Chart(document.getElementById('chart-patienttype'), {
+    type:'doughnut',
+    data:{ labels:[], datasets:[{ data:[], backgroundColor:c.palette, borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'55%', plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:12}, color:c.ink}} } }
+  });
+}
+
+function renderCharts(rows){
+  // trend: cases per day
+  const byDate = {};
+  rows.forEach(r=>{ if(r.Date) byDate[r.Date] = (byDate[r.Date]||0)+1; });
+  const dates = Object.keys(byDate).sort();
+  charts.trend.data.labels = dates;
+  charts.trend.data.datasets[0].data = dates.map(d=>byDate[d]);
+  charts.trend.update();
+
+  // opd/ipd
+  const opd = rows.filter(r=>r.OPD_IPD==='OPD').length;
+  const ipd = rows.filter(r=>r.OPD_IPD==='IPD').length;
+  charts.opdipd.data.datasets[0].data = [opd, ipd];
+  charts.opdipd.update();
+
+  // disease breakdown (top 8)
+  const byDisease = {};
+  rows.forEach(r=>{ if(r.Disease) byDisease[r.Disease] = (byDisease[r.Disease]||0)+1; });
+  const topDiseases = Object.entries(byDisease).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  charts.disease.data.labels = topDiseases.map(d=>d[0]);
+  charts.disease.data.datasets[0].data = topDiseases.map(d=>d[1]);
+  charts.disease.update();
+
+  // patient type
+  const byType = {};
+  rows.forEach(r=>{ if(r.PatientType) byType[r.PatientType] = (byType[r.PatientType]||0)+1; });
+  charts.patienttype.data.labels = Object.keys(byType);
+  charts.patienttype.data.datasets[0].data = Object.values(byType);
+  charts.patienttype.update();
+}
+
+/* =====================================================================
+   Add entry modal
+   ===================================================================== */
+const entryOverlay = document.getElementById('entry-modal-overlay');
+document.getElementById('add-entry-btn').addEventListener('click', ()=>{
+  document.getElementById('entry-form').reset();
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  entryOverlay.style.display = 'flex';
+});
+document.getElementById('entry-modal-close').addEventListener('click', ()=> entryOverlay.style.display='none');
+document.getElementById('entry-cancel-btn').addEventListener('click', ()=> entryOverlay.style.display='none');
+entryOverlay.addEventListener('click', (e)=>{ if(e.target===entryOverlay) entryOverlay.style.display='none'; });
+
+document.getElementById('entry-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('entry-submit-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const entry = {
+    patientName: document.getElementById('f-patientName').value.trim(),
+    patientType: document.getElementById('f-patientType').value,
+    opdIpd: document.getElementById('f-opdIpd').value,
+    disease: document.getElementById('f-disease').value,
+    originType: document.getElementById('f-originType').value,
+    date: document.getElementById('f-date').value,
+    age: document.getElementById('f-age').value,
+    gender: document.getElementById('f-gender').value,
+    location: document.getElementById('f-location').value
+  };
+  try{
+    const result = await apiPost({ action:'addEntry', entry });
+    if(result.success){
+      showToast('Entry saved.');
+      entryOverlay.style.display = 'none';
+      await loadData();
+      applyFilters();
+    } else {
+      showToast(result.message || 'Could not save entry.', true);
     }
+  } catch(err){
+    showToast('Network error while saving entry.', true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save entry';
+  }
+});
+
+/* =====================================================================
+   Manage options modal
+   ===================================================================== */
+const optionsOverlay = document.getElementById('options-modal-overlay');
+document.getElementById('manage-options-btn').addEventListener('click', ()=>{
+  optionsOverlay.style.display = 'flex';
+  renderOptionList();
+});
+document.getElementById('options-modal-close').addEventListener('click', ()=> optionsOverlay.style.display='none');
+optionsOverlay.addEventListener('click', (e)=>{ if(e.target===optionsOverlay) optionsOverlay.style.display='none'; });
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeOptionTab = btn.dataset.type;
+    renderOptionList();
+  });
+});
+
+function renderOptionList(){
+  const list = document.getElementById('option-list');
+  const values = activeOptionTab === 'Disease' ? options.diseases : options.locations;
+  list.innerHTML = '';
+  if(values.length === 0){
+    list.innerHTML = '<div class="option-row" style="color:var(--muted);">No values yet.</div>';
+    return;
+  }
+  values.forEach(v=>{
+    const row = document.createElement('div');
+    row.className = 'option-row';
+    row.innerHTML = `<span>${escapeHtml(v)}</span><button data-value="${escapeHtml(v)}">Remove</button>`;
+    row.querySelector('button').addEventListener('click', ()=> removeOption(v));
+    list.appendChild(row);
   });
 }
 
-function formatBucketLabel(key, groupBy) {
-  if (groupBy === 'month') {
-    const [y, m] = key.split('-');
-    return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+document.getElementById('add-option-btn').addEventListener('click', addOptionHandler);
+document.getElementById('new-option-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addOptionHandler(); } });
+
+async function addOptionHandler(){
+  const input = document.getElementById('new-option-input');
+  const value = input.value.trim();
+  if(!value) return;
+  try{
+    const result = await apiPost({ action:'addOption', optionType: activeOptionTab, value });
+    if(result.success){
+      input.value = '';
+      await loadOptions();
+      renderOptionList();
+      showToast('Option added.');
+    } else {
+      showToast(result.message || 'Could not add option.', true);
+    }
+  } catch(err){
+    showToast('Network error while adding option.', true);
   }
-  if (groupBy === 'week') {
-    const d = new Date(key + 'T00:00:00');
-    return 'Wk of ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-  }
-  const d = new Date(key + 'T00:00:00');
-  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
-/* =========================================================================
-   EXPORT
-   ========================================================================= */
-function exportToCSV() {
-  if (data.length === 0) return alert('No data to export');
-  let csv = 'PatientName,PatientType,OPD_IPD,Disease,OriginType,Date,Age,Gender,Location\n';
-  data.forEach(r => {
-    csv += `"${r.PatientName}","${r.PatientType}","${r.OPD_IPD}","${r.Disease}","${r.OriginType}",${r.Date},${r.Age},"${r.Gender}","${r.Location}"\n`;
+async function removeOption(value){
+  try{
+    const result = await apiPost({ action:'deleteOption', optionType: activeOptionTab, value });
+    if(result.success){
+      await loadOptions();
+      renderOptionList();
+      showToast('Option removed.');
+    } else {
+      showToast(result.message || 'Could not remove option.', true);
+    }
+  } catch(err){
+    showToast('Network error while removing option.', true);
+  }
+}
+
+/* =====================================================================
+   CSV export
+   ===================================================================== */
+document.getElementById('export-csv-btn').addEventListener('click', ()=>{
+  const rows = getFiltered();
+  if(rows.length === 0){ showToast('No records to export.', true); return; }
+  const headers = ['Date','PatientName','PatientType','OPD_IPD','Disease','OriginType','Age','Gender','Location'];
+  const csvLines = [headers.join(',')];
+  rows.forEach(r=>{
+    const line = headers.map(h=>{
+      let v = r[h] !== undefined ? String(r[h]) : '';
+      if(v.includes(',') || v.includes('"')) v = '"' + v.replace(/"/g,'""') + '"';
+      return v;
+    }).join(',');
+    csvLines.push(line);
   });
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob([csvLines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `health_data_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `case-records-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showStatus('CSV exported', 'success');
-}
+});
 
-/* =========================================================================
-   UTIL
-   ========================================================================= */
-function showStatus(msg, type, timeout = 3000) {
-  const host = document.getElementById('statusHost');
-  const div = document.createElement('div');
-  div.className = `status ${type}`;
-  div.textContent = msg;
-  host.insertBefore(div, host.firstChild);
-  setTimeout(() => div.remove(), timeout);
-}
-
-function escapeHtml(str) {
-  if (str === undefined || str === null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function escapeJs(str) {
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
+/* =====================================================================
+   Boot
+   ===================================================================== */
+(function boot(){
+  const saved = sessionStorage.getItem('hid_user');
+  if(saved){
+    currentUser = saved;
+    enterApp();
+  }
+})();
 </script>
 </body>
 </html>
