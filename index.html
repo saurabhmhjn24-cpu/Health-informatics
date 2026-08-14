@@ -149,6 +149,8 @@
   .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
   .badge-opd{background:var(--teal-pale);color:var(--teal-dark);}
   .badge-ipd{background:var(--amber-pale);color:var(--amber);}
+  .row-delete-btn{background:none;border:1px solid var(--line);color:var(--danger);padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+  .row-delete-btn:hover{background:var(--danger-pale);border-color:var(--danger);}
   .empty-state{padding:48px 20px;text-align:center;color:var(--muted);}
   .empty-state .pulse-trace{max-width:180px;margin:0 auto 14px;}
   .empty-state p{font-size:13.5px;margin:0;}
@@ -346,7 +348,7 @@
           <thead>
             <tr>
               <th>Date</th><th>Patient</th><th>Type</th><th>OPD/IPD</th>
-              <th>Disease</th><th>Origin</th><th>Age</th><th>Gender</th><th>Location</th>
+              <th>Disease</th><th>Origin</th><th>Age</th><th>Gender</th><th>Location</th><th></th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -457,7 +459,7 @@
 /* =====================================================================
    CONFIG — paste your Apps Script /exec Web App URL here
    ===================================================================== */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9bnsWGrOEyl8WaQl--LPPRbiXXtiQ6JBZLowEHT7iTywMGN289vX565NtoczUEZqg/exec';
+const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 /* =====================================================================
    State
@@ -669,7 +671,9 @@ function renderTable(rows){
       <td>${escapeHtml(String(r.Age||''))}</td>
       <td>${escapeHtml(r.Gender||'')}</td>
       <td>${escapeHtml(r.Location||'')}</td>
+      <td><button class="row-delete-btn" data-row="${r.RowIndex}">Delete</button></td>
     `;
+    tr.querySelector('.row-delete-btn').addEventListener('click', ()=> handleDeleteEntry(r.RowIndex, r.PatientName));
     tbody.appendChild(tr);
   });
 }
@@ -800,6 +804,26 @@ document.getElementById('entry-form').addEventListener('submit', async (e)=>{
     btn.disabled = false; btn.textContent = 'Save entry';
   }
 });
+
+/* =====================================================================
+   Delete entry
+   ===================================================================== */
+async function handleDeleteEntry(rowIndex, patientName){
+  const confirmed = confirm(`Delete the entry for "${patientName || 'this patient'}"? This cannot be undone.`);
+  if(!confirmed) return;
+  try{
+    const result = await apiPost({ action:'deleteEntry', rowIndex });
+    if(result.success){
+      showToast('Entry deleted.');
+      await loadData();
+      applyFilters();
+    } else {
+      showToast(result.message || 'Could not delete entry.', true);
+    }
+  } catch(err){
+    showToast('Network error while deleting entry.', true);
+  }
+}
 
 /* =====================================================================
    Manage options modal
